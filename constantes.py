@@ -31,7 +31,7 @@ son_gagner = 				"sounds/woohoo.ogg"
 son_perdu = 				"sounds/oh_non.ogg"
 
 #Paramètres du jeu
-music_on =				False
+music_on =				True
 pause_before_key_repeat = 		1
 key_repeat_time = 			10
 tick_speed = 				10

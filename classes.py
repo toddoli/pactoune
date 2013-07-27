@@ -169,101 +169,85 @@ class Perso:
 				self.niveau.nb_pitoune += -1
 				manger.play()
 
-	def deplacement_auto(self, px, py):
-		"""Methode permettant de déplacer les mechants de manière aléatoire"""	
+        def deplacement_auto(self, px, py):
+            """Methode permettant de déplacer les mechants de manière aléatoire"""	
+            
+            #case du monstre
+            mx = self.case_x
+            my = self.case_y
+            ok = False
+            
+	    #Calcul de la distance du Pactoune par rapport au monstre
+            distance_x = px - mx
+            distance_y = py - my
+            
+	    #Le monstre va prendre la direction de Pactoune s'il est proche en fonction de la difficulté "level"
+            if ( distance_x <= level and distance_x >= 0 and distance_y==0) : #Pactoune est proche à droite
+                deplacement = (vitesse,0)
+                
+            elif ( distance_x >= -level and distance_x <= 0  and distance_y==0) : #Pactoune est proche à gauche
+                deplacement = (-vitesse,0)
+                
+            elif ( distance_y <= level and distance_y >= 0  and distance_x==0) : #Pactoune est proche en bas
+                deplacement = (0,vitesse)
+                
+            elif ( distance_y >= -level and distance_y <= 0  and distance_x==0) : #Pactoune est proche en haut
+                deplacement = (0,-vitesse)
+                
+            else : #Calcul du déplacement
+                deplacement = self.calcul_deplacement()		#deplacement(x,y) avec x: nb de pixels horizontaux et y: nb de pixels verticaux
+                next_case_x = (self.x + deplacement[0] ) / taille_sprite
+                next_case_y = (self.y + deplacement[1] ) / taille_sprite
+                
+                if self.niveau.structure[next_case_y][next_case_x] == '0' or self.niveau.structure[next_case_y][next_case_x] == 'x': #On peut se déplacer dans la direction
+                    #Déplacement
+                    self.x += deplacement[0]
+                    self.y += deplacement[1]
 
-		#case du monstre
-		mx = self.case_x
-		my = self.case_y
-		ok = False
-
-		#Calcul de la distance du Pactoune par rapport au monstre
-		distance_x = px - mx
-		distance_y = py - my
-
-		#Le monstre va prendre la direction de Pactoune s'il est proche en fonction de la difficulté "level"
-		if ( distance_x <= level and distance_x >= 0 and py == my) : #Pactoune est proche à droite
-			deplacement = (vitesse,0)
-
-		elif ( distance_x >= -level and distance_x <= 0  and py == my) : #Pactoune est proche à gauche
-			deplacement = (-vitesse,0)
-
-		elif ( distance_y <= level and distance_y >= 0  and px == mx) : #Pactoune est proche en bas
-			deplacement = (0,vitesse)
-
-		elif ( distance_y >= -level and distance_y <= 0  and px == mx) : #Pactoune est proche en haut
-			deplacement = (0,-vitesse)
-
-		else : #Calcul du déplacement
-			deplacement = self.calcul_deplacement()		#deplacement(x,y) avec x: nb de pixels horizontaux et y: nb de pixels verticaux
-
-		#Calcul de la prochaine case
-		next_case_x = (self.x + deplacement[0] ) / taille_sprite
-		next_case_y = (self.y + deplacement[1] ) / taille_sprite
-		#Calcul du prochain déplacement
-		next_step_x = (self.x + deplacement[0] + (taille_sprite - vitesse) ) / taille_sprite
-		next_step_y = (self.y + deplacement[1] + (taille_sprite - vitesse) ) / taille_sprite
-
-		impossible = True	#Flag de possibilité de déplacement ou non
-		while impossible :	#Tant qu'on ne peut pas bouger on change de direction
-			#print(impossible)
-			if self.niveau.structure[next_case_y][next_case_x] == '0' or self.niveau.structure[next_case_y][next_case_x] == 'x': #On peut se déplacer dans la direction
-				ok = True
-			if self.direction == self.droite_open or self.direction == self.droite_closed or self.direction == self.bas_open or self.direction == self.bas_closed :
-				if self.niveau.structure[next_step_y][next_step_x] == '0' or self.niveau.structure[next_step_y][next_step_x] == 'x':
-					ok = True
-				else :
-					ok = False
-			if ok :
-				#Déplacement
-				self.x += deplacement[0]
-				self.y += deplacement[1]
-
-				#Calcul de la position en case
-				self.case_x = self.x / taille_sprite
-				self.case_y = self.y / taille_sprite
-				impossible = False		
-
-			if impossible :		#Si impossible de se séplacer on change de direction
-
-				#choix aléatoire binaire				
-				true = random.choice([True,False])
-				if deplacement[0] == 0 : #Si je me suis déplacé à la verticale
-					if true :
-						deplacement = (-vitesse,0) #Soit gauche
+                    #Calcul de la position en case
+                    self.case_x = self.x / taille_sprite
+                    self.case_y = self.y / taille_sprite
+                    
+                else :		#Si impossible de se séplacer on change de direction
+                    
+                    #choix aléatoire binaire				
+                    true = random.choice([True,False])
+                    if deplacement[0] == 0 : #Si je me suis déplacé à la verticale
+                        if true :
+                            deplacement = (-vitesse,0) #Soit gauche
 						#Image dans la bonne direction
-						if self.direction == self.haut_closed or self.direction == self.bas_closed :
-							self.direction = self.gauche_open
-						elif self.direction == self.haut_open or self.direction == self.bas_open :
-							self.direction = self.gauche_closed
-					else :
-						deplacement = (vitesse,0) #Soit droite
-						if self.direction == self.haut_closed or self.direction == self.bas_closed :
-							self.direction = self.droite_open
-						elif self.direction == self.haut_open or self.direction == self.bas_open :
-							self.direction = self.droite_closed
-
-				else :	#Sinon, je me suis déplacé à l'horizontale
-					if true :
-						deplacement = (0,vitesse) #Soit bas
-						if self.direction == self.gauche_closed or self.direction == self.droite_closed :
-							self.direction = self.bas_open
-						elif self.direction == self.gauche_open or self.direction == self.droite_open :
-							self.direction = self.bas_closed
-					else :
-						deplacement = (0,-vitesse) #Soit haut
-						if self.direction == self.gauche_closed or self.direction == self.droite_closed :
-							self.direction = self.haut_open
-						elif self.direction == self.gauche_open or self.direction == self.droite_open :
-							self.direction = self.haut_closed
+                            if self.direction == self.haut_closed or self.direction == self.bas_closed :
+                                self.direction = self.gauche_open
+                            elif self.direction == self.haut_open or self.direction == self.bas_open :
+                                self.direction = self.gauche_closed
+                        else :
+                            deplacement = (vitesse,0) #Soit droite
+                            if self.direction == self.haut_closed or self.direction == self.bas_closed :
+                                self.direction = self.droite_open
+                            elif self.direction == self.haut_open or self.direction == self.bas_open :
+                                self.direction = self.droite_closed
+                                
+                    else :	#Sinon, je me suis déplacé à l'horizontale
+                        if true :
+                            deplacement = (0,vitesse) #Soit bas
+                            if self.direction == self.gauche_closed or self.direction == self.droite_closed :
+                                self.direction = self.bas_open
+                            elif self.direction == self.gauche_open or self.direction == self.droite_open :
+                                self.direction = self.bas_closed
+                        else :
+                            deplacement = (0,-vitesse) #Soit haut
+                            if self.direction == self.gauche_closed or self.direction == self.droite_closed :
+                                self.direction = self.haut_open
+                            elif self.direction == self.gauche_open or self.direction == self.droite_open :
+                                self.direction = self.haut_closed
 
 		#Si case pactoune = case monstre alors on perd
-		if px == self.case_x and py == self.case_y : #Si pactoune est plus a droite
-			perdu = pygame.mixer.Sound(son_perdu)
-			perdu.play()
-			return True
+                if px == self.case_x and py == self.case_y : #Si pactoune est plus a droite
+                    perdu = pygame.mixer.Sound(son_perdu)
+                    perdu.play()
+                    return True
 		else :
-			return False
+                    return False
 
 	def calcul_deplacement(self)  :
 		"""Calcul du déplacement en fonction de la direction"""
