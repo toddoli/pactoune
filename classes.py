@@ -196,50 +196,50 @@ class Perso:
                 
             else : #Calcul du déplacement
                 deplacement = self.calcul_deplacement()		#deplacement(x,y) avec x: nb de pixels horizontaux et y: nb de pixels verticaux
-                next_case_x = (self.x + deplacement[0] ) / taille_sprite
-                next_case_y = (self.y + deplacement[1] ) / taille_sprite
+            next_case_x = (self.x + deplacement[0] ) / taille_sprite
+            next_case_y = (self.y + deplacement[1] ) / taille_sprite
                 
-                if self.niveau.structure[next_case_y][next_case_x] == '0' or self.niveau.structure[next_case_y][next_case_x] == 'x': #On peut se déplacer dans la direction
+            if self.niveau.structure[next_case_y][next_case_x] == '0' or self.niveau.structure[next_case_y][next_case_x] == 'x': #On peut se déplacer dans la direction
                     #Déplacement
-                    self.x += deplacement[0]
-                    self.y += deplacement[1]
-
+                self.x += deplacement[0]
+                self.y += deplacement[1]
+                
                     #Calcul de la position en case
-                    self.case_x = self.x / taille_sprite
-                    self.case_y = self.y / taille_sprite
-                    
-                else :		#Si impossible de se séplacer on change de direction
-                    
+                self.case_x = self.x / taille_sprite
+                self.case_y = self.y / taille_sprite
+                
+            else :		#Si impossible de se séplacer on change de direction
+                
                     #choix aléatoire binaire				
-                    true = random.choice([True,False])
-                    if deplacement[0] == 0 : #Si je me suis déplacé à la verticale
-                        if true :
-                            deplacement = (-vitesse,0) #Soit gauche
+                true = random.choice([True,False])
+                if deplacement[0] == 0 : #Si je me suis déplacé à la verticale
+                    if true :
+                        deplacement = (-vitesse,0) #Soit gauche
 						#Image dans la bonne direction
-                            if self.direction == self.haut_closed or self.direction == self.bas_closed :
-                                self.direction = self.gauche_open
-                            elif self.direction == self.haut_open or self.direction == self.bas_open :
-                                self.direction = self.gauche_closed
-                        else :
-                            deplacement = (vitesse,0) #Soit droite
-                            if self.direction == self.haut_closed or self.direction == self.bas_closed :
-                                self.direction = self.droite_open
-                            elif self.direction == self.haut_open or self.direction == self.bas_open :
-                                self.direction = self.droite_closed
+                        if self.direction == self.haut_closed or self.direction == self.bas_closed :
+                            self.direction = self.gauche_open
+                        elif self.direction == self.haut_open or self.direction == self.bas_open :
+                            self.direction = self.gauche_closed
+                    else :
+                        deplacement = (vitesse,0) #Soit droite
+                        if self.direction == self.haut_closed or self.direction == self.bas_closed :
+                            self.direction = self.droite_open
+                        elif self.direction == self.haut_open or self.direction == self.bas_open :
+                            self.direction = self.droite_closed
                                 
-                    else :	#Sinon, je me suis déplacé à l'horizontale
-                        if true :
-                            deplacement = (0,vitesse) #Soit bas
-                            if self.direction == self.gauche_closed or self.direction == self.droite_closed :
-                                self.direction = self.bas_open
-                            elif self.direction == self.gauche_open or self.direction == self.droite_open :
-                                self.direction = self.bas_closed
-                        else :
-                            deplacement = (0,-vitesse) #Soit haut
-                            if self.direction == self.gauche_closed or self.direction == self.droite_closed :
-                                self.direction = self.haut_open
-                            elif self.direction == self.gauche_open or self.direction == self.droite_open :
-                                self.direction = self.haut_closed
+                else :	#Sinon, je me suis déplacé à l'horizontale
+                    if true :
+                        deplacement = (0,vitesse) #Soit bas
+                        if self.direction == self.gauche_closed or self.direction == self.droite_closed :
+                            self.direction = self.bas_open
+                        elif self.direction == self.gauche_open or self.direction == self.droite_open :
+                            self.direction = self.bas_closed
+                    else :
+                        deplacement = (0,-vitesse) #Soit haut
+                        if self.direction == self.gauche_closed or self.direction == self.droite_closed :
+                            self.direction = self.haut_open
+                        elif self.direction == self.gauche_open or self.direction == self.droite_open :
+                            self.direction = self.haut_closed
 
 		#Si case pactoune = case monstre alors on perd
                 if px == self.case_x and py == self.case_y : #Si pactoune est plus a droite
