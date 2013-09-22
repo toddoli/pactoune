@@ -34,8 +34,10 @@ son_perdu = 				"sounds/oh_non.ogg"
 music_on =				True
 pause_before_key_repeat = 		1
 key_repeat_time = 			10
-tick_speed = 				10
-vitesse = 				32 	#en pixels
-level = 				3	#niveau de difficulté
+vitesse = 				8 	                #en pixels
+tick_speed = 				60
+level = 				3	                #niveau de difficulté
 choix_niveau = 				'levels/lvl1'
-
+delta =                                 taille_sprite/vitesse   #nombre de déplacements possible dans un sprite
+largeur_movesGrid=                      largeur_fenetre/vitesse
+hauteur_movesGrid=                      hauteur_fenetre/vitesse

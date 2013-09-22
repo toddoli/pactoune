@@ -18,6 +18,7 @@ class Niveau:
 	self.case_depart = []
 	self.case_depart_mechant = []
 	self.moved_once = False
+        self.movesGrid = []
      
     def generer(self):
         """Méthode permettant de générer le niveau en fonction du fichier.
@@ -39,6 +40,9 @@ class Niveau:
             #On sauvegarde cette structure
             self.structure = structure_niveau
      
+        #On génère une movesGrid vide
+        for i in range(hauteur_movesGrid):
+            self.movesGrid.append([0] * largeur_movesGrid)
      
     def afficher(self, fenetre):
         """Méthode permettant d'afficher le niveau en fonction 
@@ -51,39 +55,53 @@ class Niveau:
 	hline = pygame.image.load("images/hline.png").convert_alpha()
 	pitoune = pygame.image.load("images/pitoune.png").convert_alpha()
 	fond = pygame.image.load("images/ingame.png").convert()
-
+        
 	#On affiche le fond
 	fenetre.blit(fond, (0,0))
+
         #On parcourt la liste du niveau
         num_ligne = 0
         for ligne in self.structure:
             #On parcourt les listes de lignes
             num_case = 0
             for sprite in ligne:
+                
                 #On calcule la position réelle en pixels
                 x = num_case * taille_sprite
                 y = num_ligne * taille_sprite
-                if sprite == 'q':          #q = Coin haut gauche
+                if sprite == 'q' or sprite == '-' or sprite == 'e' or sprite == '|' or sprite == 'z' or sprite == 'c' : #espace non jouable
+                
+                    #Etablissement d'une matrice de zones jouables (espaces) ou non (murs), relatifs à la vitesse de déplacement.
+                    #1 = occupé / 0 = libre
+                    for i in range(delta) :
+                        for j in range(delta) :
+                            index_ligne = num_ligne*delta + i
+                            index_case = num_case*delta + j
+                            self.movesGrid[index_ligne][index_case] = 1 # espace occupé par un mur
+                    if sprite == 'q':          #q = Coin haut gauche
 			fenetre.blit(up_left_corner, (x,y))
-                elif sprite == '-':        #- = Ligne horizontale
+                    elif sprite == '-':        #- = Ligne horizontale
 			fenetre.blit(hline, (x,y))
-                elif sprite == 'e':        #e = Coin haut droit
+                    elif sprite == 'e':        #e = Coin haut droit
 			fenetre.blit(up_right_corner, (x,y))
-		elif sprite == '|':        #| = Ligne Verticale
+                    elif sprite == '|':        #| = Ligne Verticale
 			fenetre.blit(vline, (x,y))
-		elif sprite == '0':        #0 = pitoune
+                    elif sprite == 'z':        #z = Coin bas gauche
+                        fenetre.blit(down_left_corner, (x,y))
+                    elif sprite == 'c':        #c = Coin bas droit
+                        fenetre.blit(down_right_corner, (x,y))
+               
+                else : # Espace jouable ( la matrice movesGrid est déjà à 0 donc rien à y faire ici )
+                    
+                    if sprite == '0':        #0 = pitoune
 			fenetre.blit(pitoune, (x,y))
-		elif sprite == 'P':        #P = Depart_Perso
+                    elif sprite == 'P':        #P = Depart_Perso
 			self.case_depart = (num_case,num_ligne)
-		elif sprite == 'B':        #B = Méchants
+                    elif sprite == 'B':        #B = Méchants
 			self.case_depart_mechant.append((num_case,num_ligne))
-		elif sprite == 'z':        #z = Coin bas gauche
-                    fenetre.blit(down_left_corner, (x,y))
-		elif sprite == 'c':        #c = Coin bas droit
-                    fenetre.blit(down_right_corner, (x,y))
                 num_case += 1
             num_ligne += 1
-
+            
     def replace(self, case_x, case_y, value):
         """Méthode permettant de modifier le contenu d'une case"""
         self.structure[case_y][case_x] = value
@@ -135,40 +153,31 @@ class Perso:
 
 		#Flag du 1er deplacement
 		self.niveau.moved_once = True
-		ok = False
-
+                
 		#Calcul du déplacement en fonction de la direction
 		deplacement = self.str2deplacement(direction)
-
-		#Calcul de la prochaine case
-		next_case_x = (self.x + deplacement[0] ) / taille_sprite
-		next_case_y = (self.y + deplacement[1] ) / taille_sprite
-		#Calcul du prochain déplacement
-		next_step_x = (self.x + deplacement[0] + (taille_sprite - vitesse) ) / taille_sprite
-		next_step_y = (self.y + deplacement[1] + (taille_sprite - vitesse) ) / taille_sprite
-
-		#On vérifie que la case de destination n'est pas un mur
-		if self.niveau.structure[next_case_y][next_case_x] == '0' or self.niveau.structure[next_case_y][next_case_x] == 'x':
-			ok = True		
-		if direction == 'droite' or direction == 'bas' :
-			if self.niveau.structure[next_step_y][next_step_x] == '0' or self.niveau.structure[next_step_y][next_step_x] == 'x':
-				ok = True
-			else :
-				ok = False
-		if ok :
-			#Déplacement
-			self.x += deplacement[0]
-			self.y += deplacement[1]
-			#Calcul de la case actuelle
-			self.case_x = self.x / taille_sprite
-			self.case_y = self.y / taille_sprite
-
-			if self.niveau.structure[self.case_y][self.case_x] == '0' : #Si pitoune alors manger
-				manger = pygame.mixer.Sound(son_manger)
-				self.niveau.structure[self.case_y][self.case_x] = 'x'
-				self.niveau.nb_pitoune += -1
-				manger.play()
-
+                
+                #On récupère les infos pour tester la prochaine case
+                next_case = self.get_next_case(direction,deplacement)
+                next_y1 = next_case['next_y1']
+                next_x1 =  next_case['next_x1']
+                next_y2 = next_case['next_y2']
+                next_x2 = next_case['next_x2']
+                #On vérifie que la destination n'est pas un mur
+                if self.niveau.movesGrid[next_y1][next_x1] == 0 and  self.niveau.movesGrid[next_y2][next_x2] == 0 :
+                    #Déplacement
+                    self.x += deplacement[0]
+                    self.y += deplacement[1]
+                    #Calcul de la case actuelle
+                    self.case_x = self.x / taille_sprite
+                    self.case_y = self.y / taille_sprite
+                    
+                    if self.niveau.structure[self.case_y][self.case_x] == '0' : #Si pitoune alors manger
+                        manger = pygame.mixer.Sound(son_manger)
+                        self.niveau.structure[self.case_y][self.case_x] = 'x'
+                        self.niveau.nb_pitoune += -1
+                        manger.play()
+                        
         def deplacement_auto(self, px, py):
             """Methode permettant de déplacer les mechants de manière aléatoire"""	
             
@@ -196,11 +205,16 @@ class Perso:
                 
             else : #Calcul du déplacement
                 deplacement = self.calcul_deplacement()		#deplacement(x,y) avec x: nb de pixels horizontaux et y: nb de pixels verticaux
-            next_case_x = (self.x + deplacement[0] ) / taille_sprite
-            next_case_y = (self.y + deplacement[1] ) / taille_sprite
-                
-            if self.niveau.structure[next_case_y][next_case_x] == '0' or self.niveau.structure[next_case_y][next_case_x] == 'x': #On peut se déplacer dans la direction
-                    #Déplacement
+            
+            #On récupère les infos pour tester la prochaine case
+            next_case = self.get_next_case(self.direction2str(),deplacement)
+            next_y1 = next_case['next_y1']
+            next_x1 = next_case['next_x1']
+            next_y2 = next_case['next_y2']
+            next_x2 = next_case['next_x2']
+            
+            if self.niveau.movesGrid[next_y1][next_x1] == 0 and  self.niveau.movesGrid[next_y2][next_x2] == 0 :                
+                       #Déplacement
                 self.x += deplacement[0]
                 self.y += deplacement[1]
                 
@@ -249,6 +263,30 @@ class Perso:
 		else :
                     return False
 
+        def get_next_case(self, direction, deplacement) :
+                """On calcule les bonnes limites à utiliser pour comparer les cases en prévision du déplacement"""
+                if direction == 'gauche' :
+                    next_y1 = (self.y + deplacement[1]) / vitesse
+                    next_x1 = (self.x + deplacement[0]) / vitesse
+                    next_y2 = next_y1 + delta -1
+                    next_x2 = next_x1
+                elif direction == 'droite' :
+                    next_y1 = ((self.y + deplacement[1]) / vitesse ) 
+                    next_x1 = ((self.x + deplacement[0] + taille_sprite - 1) / vitesse )
+                    next_y2 = next_y1 + delta -1
+                    next_x2 = next_x1
+                elif direction == 'haut' :
+                    next_y1 = (self.y + deplacement[1]) / vitesse
+                    next_x1 = (self.x + deplacement[0]) / vitesse
+                    next_y2 = next_y1
+                    next_x2 = next_x1 + delta -1
+                elif direction == 'bas' :
+                    next_y1 = ((self.y + deplacement[1] + taille_sprite - 1) / vitesse )
+                    next_x1 = ((self.x + deplacement[0]) / vitesse ) 
+                    next_y2 = next_y1
+                    next_x2 = next_x1 + delta -1
+                return {'next_x1': next_x1,'next_y1': next_y1,'next_x2': next_x2,'next_y2': next_y2}
+
 	def calcul_deplacement(self)  :
 		"""Calcul du déplacement en fonction de la direction"""
 		self.open_close_animation()
@@ -293,7 +331,18 @@ class Perso:
 			else :
 				self.direction = self.bas_closed
 			return (0,vitesse)
-     
+
+        def direction2str(self)  :
+		"""Calcul du déplacement en fonction de la direction"""
+		if self.direction == self.haut_closed or self.direction == self.haut_open:
+                    return 'haut'
+                elif self.direction == self.bas_closed or self.direction == self.bas_open:
+                    return 'bas'
+                if self.direction == self.gauche_closed or self.direction == self.gauche_open:
+                    return 'gauche'
+                if self.direction == self.droite_closed or self.direction == self.droite_open:
+                    return 'droite'
+
 	def open_close_animation(self):
 		"""Methode permettant de remettre le personnage dans la bonne direction et le faire s'animer"""	
 
